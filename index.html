@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html data-livestyle-extension="available"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>demo</title>
+
+    <script src="js/easeljs-0.7.1.min.js"></script>
+    <script src="js/tweenjs-0.5.1.min.js"></script>
+    <script src="js/movieclip-0.7.1.min.js"></script>
+    <script src="js/preloadjs-0.4.1.min.js"></script>
+	<script src="js/intelFaq.js"></script>
+
+    <script>
+        var canvas, stage, exportRoot;
+        var count=0;//loading百分比
+        var tipsTxt;//提示文本
+        var manifest;//图片加载列表
+        var mainCurrentFrame=100;//当前所在帧数
+        var iniY=0;//初始y位置
+        var tempY=0;//临时y位置
+        var targetFrame=0;
+        var totalFrame=1450;
+        var stepFrame=100;
+        var iniTime=0;//初始时间
+        var nowTime=0;//当前时间
+        var isWap;
+        var isMove=false;
+        var ok;//正确答案
+        var f;//问题
+
+        //框架代码--------
+        function init() {
+            canvas = document.getElementById("canvas");
+            images = images||{};
+
+            manifest = [
+                {src:"images/arrow1.png", id:"arrow1"},
+                {src:"images/logo.png", id:"logo"},
+                {src:"images/p11.jpg", id:"p11"},
+                {src:"images/p12.png", id:"p12"},
+                {src:"images/p13.png", id:"p13"},
+                {src:"images/p14.png", id:"p14"},
+                {src:"images/p15.png", id:"p15"},
+                {src:"images/p16.png", id:"p16"},
+                {src:"images/p21.jpg", id:"p21"},
+                {src:"images/p210.png", id:"p210"},
+                {src:"images/p211.png", id:"p211"},
+                {src:"images/p212.png", id:"p212"},
+                {src:"images/p22.png", id:"p22"},
+                {src:"images/p23.png", id:"p23"},
+                {src:"images/p24.png", id:"p24"},
+                {src:"images/p25.png", id:"p25"},
+                {src:"images/p26.png", id:"p26"},
+                {src:"images/p27.png", id:"p27"},
+                {src:"images/p28.png", id:"p28"},
+                {src:"images/p29.png", id:"p29"},
+                {src:"images/p31.jpg", id:"p31"},
+                {src:"images/p310.png", id:"p310"},
+                {src:"images/p32.png", id:"p32"},
+                {src:"images/p33.png", id:"p33"},
+                {src:"images/p34.png", id:"p34"},
+                {src:"images/p35.png", id:"p35"},
+                {src:"images/p36.png", id:"p36"},
+                {src:"images/p37.png", id:"p37"},
+                {src:"images/p38.png", id:"p38"},
+                {src:"images/p39.png", id:"p39"},
+                {src:"images/p41.jpg", id:"p41"},
+                {src:"images/p410.png", id:"p410"},
+                {src:"images/p411.png", id:"p411"},
+                {src:"images/p412.png", id:"p412"},
+                {src:"images/p42.png", id:"p42"},
+                {src:"images/p43.png", id:"p43"},
+                {src:"images/p44.png", id:"p44"},
+                {src:"images/p45.png", id:"p45"},
+                {src:"images/p46.png", id:"p46"},
+                {src:"images/p47.png", id:"p47"},
+                {src:"images/p48.png", id:"p48"},
+                {src:"images/p49.png", id:"p49"},
+                {src:"images/p51.jpg", id:"p51"},
+                {src:"images/p52.png", id:"p52"},
+                {src:"images/p53.png", id:"p53"},
+                {src:"images/p54.png", id:"p54"},
+                {src:"images/p61.jpg", id:"p61"},
+                {src:"images/p62.png", id:"p62"},
+                {src:"images/p63.png", id:"p63"},
+                {src:"images/p64.png", id:"p64"},
+                {src:"images/p65.png", id:"p65"},
+                {src:"images/p66.png", id:"p66"},
+                {src:"images/p67.png", id:"p67"},
+                {src:"images/p71.jpg", id:"p71"},
+                {src:"images/p72.png", id:"p72"},
+                {src:"images/p73.png", id:"p73"},
+                {src:"images/p81.jpg", id:"p81"},
+                {src:"images/p82.png", id:"p82"},
+                {src:"images/p83.png", id:"p83"},
+                {src:"images/p84.png", id:"p84"},
+                {src:"images/p85.png", id:"p85"}
+            ];
+
+            var loader = new createjs.LoadQueue(false);
+            //loader.installPlugin(createjs.Sound);
+            loader.addEventListener("fileload", handleFileLoad);
+            loader.addEventListener("complete", handleComplete);
+            loader.loadManifest(manifest);
+
+            //loading
+            stage = new createjs.Stage(canvas);
+        }
+        function handleFileLoad(evt) {
+            if (evt.item.type == "image") { images[evt.item.id] = evt.result; }
+            count++;
+            loadingMc=document.getElementById('loading');
+            loadingMc.innerHTML=String(Math.floor(count/manifest.length*100))+"%";
+        }
+
+        function handleComplete() {
+            //清除loading
+            loadingMc.style.display='none';
+            exportRoot = new lib.intelFaq();
+            stage.addChild(exportRoot);
+            stage.update();
+            stage.enableMouseOver();
+
+            createjs.Ticker.setFPS(60);
+            createjs.Ticker.addEventListener("tick", stage);
+
+            myscript();//自已的代码
+        }
+
+        //自己的代码-------
+        function myscript(){
+            checkDevice();
+            iniEvent();
+            iniBtn();
+        }
+        function iniEvent(){
+            if (createjs.Touch.isSupported()) {
+                createjs.Touch.enable(stage);
+            }
+            stage.addEventListener("stagemousedown",stagemousedownHandle);
+        }
+        function stagemousedownHandle(event){
+            event.preventDefault();
+
+            iniY=event.stageY;
+            tempY=event.stageY;
+            iniTime=new Date().getTime();
+
+            stage.addEventListener("stagemousemove",stagemousemoveHandle);
+            stage.addEventListener("stagemouseup",stagemouseupHandle);
+        }
+        function stagemousemoveHandle(event){
+            event.preventDefault();
+            //console.log(exportRoot.currentFrame);
+            if(exportRoot.currentFrame<totalFrame && event.stageY<tempY-10){
+                //console.log("向上"+event.stageY+"-"+tempY);
+                tempY=event.stageY;
+                exportRoot.gotoAndStop(exportRoot.currentFrame+1);
+            }
+            if(exportRoot.currentFrame>100&& event.stageY>tempY+10){
+                //alert("向下"+event.stageY+"-"+tempY);
+                tempY=event.stageY;
+                exportRoot.gotoAndStop(exportRoot.currentFrame-1);
+            }
+        }
+        function stagemouseupHandle(event){
+            event.preventDefault();
+
+            nowTime=new Date().getTime();
+            if(Math.abs(event.stageY-iniY)>200 ||(nowTime-iniTime)<500){
+                if(mainCurrentFrame>stepFrame && event.stageY>iniY && (event.stageY>iniY+200 || (nowTime-iniTime)<500)){
+                    //判断用户是否向下移动了足够远
+                    if(mainCurrentFrame>700 && mainCurrentFrame<=1050){
+                        goFrame(mainCurrentFrame-stepFrame/2);
+                    }else{
+                        goFrame(mainCurrentFrame-stepFrame);
+                    }
+                }
+                //console.log(mainCurrentFrame+'-'+(totalFrame-stepFrame));
+                if(mainCurrentFrame<=totalFrame-stepFrame && event.stageY<iniY && (event.stageY<iniY-200 || (nowTime-iniTime)<500)){
+                    //判断用户是否向上移动了足够远
+                    if(mainCurrentFrame>=700 && mainCurrentFrame<1050) {
+                        goFrame(mainCurrentFrame + stepFrame/2);
+                    }else{
+                        goFrame(mainCurrentFrame+stepFrame);
+                    }
+
+                }
+            }else{
+                goFrame(mainCurrentFrame);
+            }
+            iniY=event.stageY;
+            tempY=event.stageY;
+            iniTime=new Date().getTime();
+
+            stage.removeEventListener("stagemousemove",stagemousemoveHandle);
+            stage.removeEventListener("stagemouseup",stagemouseupHandle);
+        }
+        function goFrame(frame){
+            isMove=true;
+            targetFrame=frame;
+            createjs.Ticker.addEventListener("tick", enterFrameHandle);
+        }
+        function enterFrameHandle(event){
+            //console.log(exportRoot.currentFrame);
+            if(exportRoot.currentFrame==targetFrame){
+                createjs.Ticker.removeEventListener("tick", enterFrameHandle);
+                mainCurrentFrame=targetFrame;
+                isMove=false;
+            }else{
+                if(exportRoot.currentFrame<targetFrame){
+                    exportRoot.gotoAndStop(exportRoot.currentFrame+1);
+                }else{
+                    exportRoot.gotoAndStop(exportRoot.currentFrame-1);
+                }
+            }
+        }
+
+        function iniBtn(){
+            exportRoot.btn_play.addEventListener("click",playClickHandle);
+            exportRoot.zhongjiang1.btn_submit_info.addEventListener('click',submitInfoHandle);
+            exportRoot.zhongjiang2.btn_submit_info.addEventListener('click',submitInfoHandle);
+            exportRoot.zhongjiang3.btn_replay.addEventListener('click',replayHandle);
+        }
+        function playClickHandle(evt){
+            if(checkPointID(evt) && !isMove) {
+                if(mainCurrentFrame>=700 && mainCurrentFrame<1050) {
+                    mainCurrentFrame += stepFrame/2;
+                }else{
+                    mainCurrentFrame += stepFrame;
+                }
+                exportRoot.play();
+            }
+        }
+        function submitInfoHandle(evt){
+            console.log('显示信息提交表单');
+        }
+        function linkHandle(evt){
+            if(checkPointID(evt)){
+                window.open('http://weimh.cn/wx/invite-13.html?wid=191','_blank');
+            }
+        }
+        function readyFaq(){
+            stage.removeEventListener("stagemousedown",stagemousedownHandle);
+            var r=Math.floor(Math.random()*9)+1;
+            switch(r){
+                case 1:
+                    f=new lib.f1();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    f.d3.name='d3';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    f.d3.addEventListener('click',dClickHandle);
+                    break;
+                case 2:
+                    f=new lib.f2();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    f.d3.name='d3';
+                    ok='d3';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    f.d3.addEventListener('click',dClickHandle);
+                    break;
+                case 3:
+                    f=new lib.f3();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    break;
+                case 4:
+                    f=new lib.f4();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    f.d3.name='d3';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    f.d3.addEventListener('click',dClickHandle);
+                    break;
+                case 5:
+                    f=new lib.f5();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    f.d3.name='d3';
+                    ok='d2';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    f.d3.addEventListener('click',dClickHandle);
+                    break;
+                case 6:
+                    f=new lib.f6();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    break;
+                case 7:
+                    f=new lib.f7();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    break;
+                case 8:
+                    f=new lib.f1();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    break;
+                case 9:
+                    f=new lib.f9();
+                    exportRoot.con.addChild(f);
+                    f.d1.name='d1';
+                    f.d2.name='d2';
+                    ok='d1';
+                    f.d1.addEventListener('click',dClickHandle);
+                    f.d2.addEventListener('click',dClickHandle);
+                    break;
+            }
+
+            f.btn_replay.addEventListener('click',replayHandle);
+        }
+        function dClickHandle(evt){
+            if(evt.currentTarget.name==ok){
+                console.log('正确，显示抽奖界面');
+                getEl('phoneForm').style.display='block';
+            }else{
+                console.log('错误');
+                evt.currentTarget.parent.gotoAndStop(1);
+            }
+        }
+        function replayHandle(evt){
+            exportRoot.con.removeChild(f);
+            stage.addEventListener("stagemousedown",stagemousedownHandle);
+            mainCurrentFrame=100;
+            isMove=false;
+            exportRoot.gotoAndPlay(0);
+        }
+        //----------终端检测------
+        function checkDevice(){
+            if (!navigator.userAgent.match(/mobile/i)) {
+                //alert("当前设备为pc");
+                isWap=false;
+            }else{
+                //alert("当前设备为移动");
+                isWap=true;
+            }
+        }
+        function checkPointID(evt){
+            if(isWap){
+                if(evt.pointerID!=-1){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                if(evt.pointerID==-1){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        }
+    </script>
+    <style>
+        html,body{ width:100%;height:100%;overflow: hidden;}
+        body{margin:0px;padding:0px;}
+        canvas{position: absolute; left:0; top:0; z-index: 1; width:100%; height:100%; display:inline-block;}
+        #loading{position: absolute;z-index: 2; left:50%; top:50%; margin-left: -20px; font-size: 100%; font-family: arial, "Hiragino Sans GB", "Microsoft Yahei", sans-serif; color:#666;}
+        .phoneForm{display:none;position:absolute; left:0; right:0; z-index:3; width:100%; height:100%; background:url(images/p9-1.jpg) no-repeat; background-size: 100% 100%;}
+        .form1{width:50%; margin:30% auto;}
+        .form1 img{width:100%; display: block; margin-bottom: 15%;}
+        .form1 input{width:100%; border:none; border:1px solid #fff; border-radius:15px; height: 3em; background:none; color:#fff; margin-bottom: 15%; font-size: 100%; text-align: center;}
+
+        .infoForm{display:none;position:absolute; left:0; right:0; z-index:4; width:100%; height:auto; background:#000 url(images/p9-1.jpg) no-repeat; background-size: 100% 100%;}
+        .form2{width:70%; margin:10% auto;}
+        .form2 img{width:100%; display: block; margin-bottom: 10%;}
+        .form2 input{width:100%; border:none; border:1px solid #fff; border-radius:15px; height: 3em; background:none; color:#fff; margin-bottom: 5%; font-size: 100%; text-align: center;}
+        .form2 a{display:block; width:50%; margin:0 auto;}
+    </style>
+<link id="noteanywherecss" media="screen" type="text/css" rel="stylesheet" href="data:text/css,.note-anywhere%20.closebutton%7Bbackground-image%3A%20url%28chrome-extension%3A//bohahkiiknkelflnjjlipnaeapefmjbh/asset/deleteButton.png%29%3B%7D%0A"><style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+
+<body onload="init();" style="background-color:#000" data-pinterest-extension-installed="cr2.0.5">
+    <canvas id="canvas" width="640" height="1008" style="background-color:#000"></canvas>
+    <div id="loading" style="display: none;">100%</div>
+    <div id="phoneForm" class="phoneForm">
+        <div class="form1">
+            <form action="http://wap.relonline.cn/api/addWorldcupCustomer" method="POST" id="js_frm_submit1" onsubmit="submitForm1(this); return false;">
+                <img src="./intel历史_files/p9-2.png">
+                <img src="./intel历史_files/p9-3.png">
+                <input id="uin" class="in" type="tel" name="customer_phone" placeholder="输入手机号参与抽奖">
+                <a href="javascript:void(0);" class="btnSubmit" onclick="submitForm1(document.getElementById(&#39;js_frm_submit1&#39;));"><img src="./intel历史_files/p9-4.png" width="100%" style="display: block;"> </a>
+            </form>
+        </div>
+    </div>
+    <div id="infoForm" class="infoForm">
+        <div class="form2">
+            <form action="http://wap.relonline.cn/api/addWorldcupCustomer" method="POST" id="js_frm_submit2" onsubmit="submitForm2(this); return false;">
+                <img src="./intel历史_files/p9-8.png">
+                <input id="name" class="in" type="text" name="customer_name" placeholder="请输入姓名">
+                <input id="phone" class="in" type="tel" name="customer_phone" placeholder="请输入电话">
+                <input id="province" class="in" type="text" name="customer_province" placeholder="请输入省份">
+                <input id="city" class="in" type="text" name="customer_city" placeholder="请输入城市">
+                <input id="address" class="in" type="text" name="customer_address" placeholder="请输入地址">
+                <a href="javascript:void(0);" class="btnSubmit" onclick="submitForm1(document.getElementById(&#39;js_frm_submit2&#39;));"><img src="./intel历史_files/p9-9.png" width="100%" style="display: block;"> </a>
+                <img src="./intel历史_files/p9-10.png">
+            </form>
+        </div>
+    </div>
+    <div style="display: none">
+
+    </div>
+    <script type="text/javascript">
+        //提交手机号
+        function submitForm1(frm) {
+            var params = [];
+
+            for(var i=0,len = frm.elements.length; i < len; i++) {
+                el = frm.elements[i];
+                if(el.name=='customer_phone' && !(/^1(3|5|8)\d{9}$/.test(el.value))) {
+                    alert('请输入正确的手机号码!');
+                    return false;
+                }
+            }
+            sendRequest(frm.action,function(res){
+                res = eval('('+res.response+')');
+                if(res.success) {
+                    //location.reload();
+                    getEl('phoneForm').style.display='none';
+                    console.log('信息提交成功');
+                    var prize=1;
+                    switch(prize){
+                        case 1:
+                            exportRoot.zhongjiang1.visible=true;
+                            break;
+                        case 2:
+                            exportRoot.zhongjiang2.visible=true;
+                            break;
+                        case 3:
+                            exportRoot.zhongjiang3.visible=true;
+                            break;
+                    }
+                }else{
+                    alert(res.detail);
+                }
+            },params.join('&'));
+        }
+        //提交个人信息
+        function submitForm2(frm) {
+            var params = [];
+
+            for(var i=0,len = frm.elements.length; i < len; i++) {
+                el = frm.elements[i];
+                if(el.name=='customer_name' && el.value=='') {
+                    alert('请输入姓名!');
+                    return false;
+                }
+                if(el.name=='customer_phone' && !(/^1(3|5|8)\d{9}$/.test(el.value))) {
+                    alert('请输入正确的手机号码!');
+                    return false;
+                }
+                if(el.name && el.value !== '' && (el.type !='radio' || el.checked)) {
+                    params.push(el.name +'='+ el.value);
+                }
+            }
+            sendRequest(frm.action,function(res){
+                res = eval('('+res.response+')');
+                //alert(res.detail);
+
+                if(res.success) {
+                    //location.reload();
+                    getEl('infoForm').style.display='none';
+                    console.log('信息提交成功');
+                }else{
+                    alert(res.detail);
+                }
+            },params.join('&'));
+        }
+
+        //数据交互接口
+        function sendRequest(url,callback,postData) {
+            //alert(postData);
+            var req = createXMLHTTPObject();
+            if (!req) return;
+            var method = (postData) ? "POST" : "GET";
+            req.open(method,url,true);
+            req.setRequestHeader('User-Agent','XMLHTTP/1.0');
+            if (postData)
+                req.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+            req.onreadystatechange = function () {
+                if (req.readyState != 4) return;
+                if (req.status != 200 && req.status != 304) {
+                    //          alert('HTTP error ' + req.status);
+                    return;
+                }
+                callback(req);
+            }
+            if (req.readyState == 4) return;
+            req.send(postData);
+        }
+
+        var XMLHttpFactories = [
+            function () {return new XMLHttpRequest()},
+            function () {return new ActiveXObject("Msxml2.XMLHTTP")},
+            function () {return new ActiveXObject("Msxml3.XMLHTTP")},
+            function () {return new ActiveXObject("Microsoft.XMLHTTP")}
+        ];
+
+        function createXMLHTTPObject() {
+            var xmlhttp = false;
+            for (var i=0;i<XMLHttpFactories.length;i++) {
+                try {
+                    xmlhttp = XMLHttpFactories[i]();
+                }
+                catch (e) {
+                    continue;
+                }
+                break;
+            }
+            return xmlhttp;
+        }
+        function getEl(id) {
+            return document.getElementById(id);
+        }
+
+
+    </script>
+
+
+<script>
+    //自定义微信分享
+    var dataForWeixin={
+        appId:"",
+        MsgImg:"http://ftp.vigoo.cn/wap/2014_intelFaq/images/wxShare.jpg",
+        TLImg:"http://ftp.vigoo.cn/wap/2014_intelFaq/images/wxShare.jpg",
+        url:"http://ftp.vigoo.cn/wap/2014_intelFaq/index.html",
+        title:"intel历史",
+        desc:"intel历史",
+        fakeid:"",
+        callback:function(){}
+    };
+    (function(){
+        var onBridgeReady=function(){
+            WeixinJSBridge.on('menu:share:appmessage', function(argv){
+                WeixinJSBridge.invoke('sendAppMessage',{
+                    "appid":dataForWeixin.appId,
+                    "img_url":dataForWeixin.MsgImg,
+                    "img_width":"120",
+                    "img_height":"120",
+                    "link":dataForWeixin.url,
+                    "desc":dataForWeixin.desc,
+                    "title":dataForWeixin.title
+                }, function(res){(dataForWeixin.callback)();});
+            });
+            WeixinJSBridge.on('menu:share:timeline', function(argv){
+                (dataForWeixin.callback)();
+                WeixinJSBridge.invoke('shareTimeline',{
+                    "img_url":dataForWeixin.TLImg,
+                    "img_width":"120",
+                    "img_height":"120",
+                    "link":dataForWeixin.url,
+                    "desc":dataForWeixin.desc,
+                    "title":dataForWeixin.title
+                }, function(res){});
+            });
+            WeixinJSBridge.on('menu:share:weibo', function(argv){
+                WeixinJSBridge.invoke('shareWeibo',{
+                    "content":dataForWeixin.title,
+                    "url":dataForWeixin.url
+                }, function(res){(dataForWeixin.callback)();});
+            });
+            WeixinJSBridge.on('menu:share:facebook', function(argv){
+                (dataForWeixin.callback)();
+                WeixinJSBridge.invoke('shareFB',{
+                    "img_url":dataForWeixin.TLImg,
+                    "img_width":"120",
+                    "img_height":"120",
+                    "link":dataForWeixin.url,
+                    "desc":dataForWeixin.desc,
+                    "title":dataForWeixin.title
+                }, function(res){});
+            });
+        };
+        if(document.addEventListener){
+            document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+        }else if(document.attachEvent){
+            document.attachEvent('WeixinJSBridgeReady'   , onBridgeReady);
+            document.attachEvent('onWeixinJSBridgeReady' , onBridgeReady);
+        }
+    })();
+
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        WeixinJSBridge.call('hideToolbar');
+    });
+</script>
+<span style="border-radius: 2px !important; text-indent: 20px !important; width: auto !important; padding: 0px 4px 0px 0px !important; text-align: center !important; font-style: normal !important; font-variant: normal !important; font-weight: bold !important; font-stretch: normal !important; font-size: 11px !important; line-height: 20px !important; font-family: &quot;Helvetica Neue&quot;, Helvetica, sans-serif !important; color: rgb(255, 255, 255) !important; background: url(&quot;data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMzBweCIgd2lkdGg9IjMwcHgiIHZpZXdCb3g9Ii0xIC0xIDMxIDMxIj48Zz48cGF0aCBkPSJNMjkuNDQ5LDE0LjY2MiBDMjkuNDQ5LDIyLjcyMiAyMi44NjgsMjkuMjU2IDE0Ljc1LDI5LjI1NiBDNi42MzIsMjkuMjU2IDAuMDUxLDIyLjcyMiAwLjA1MSwxNC42NjIgQzAuMDUxLDYuNjAxIDYuNjMyLDAuMDY3IDE0Ljc1LDAuMDY3IEMyMi44NjgsMC4wNjcgMjkuNDQ5LDYuNjAxIDI5LjQ0OSwxNC42NjIiIGZpbGw9IiNmZmYiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+PHBhdGggZD0iTTE0LjczMywxLjY4NiBDNy41MTYsMS42ODYgMS42NjUsNy40OTUgMS42NjUsMTQuNjYyIEMxLjY2NSwyMC4xNTkgNS4xMDksMjQuODU0IDkuOTcsMjYuNzQ0IEM5Ljg1NiwyNS43MTggOS43NTMsMjQuMTQzIDEwLjAxNiwyMy4wMjIgQzEwLjI1MywyMi4wMSAxMS41NDgsMTYuNTcyIDExLjU0OCwxNi41NzIgQzExLjU0OCwxNi41NzIgMTEuMTU3LDE1Ljc5NSAxMS4xNTcsMTQuNjQ2IEMxMS4xNTcsMTIuODQyIDEyLjIxMSwxMS40OTUgMTMuNTIyLDExLjQ5NSBDMTQuNjM3LDExLjQ5NSAxNS4xNzUsMTIuMzI2IDE1LjE3NSwxMy4zMjMgQzE1LjE3NSwxNC40MzYgMTQuNDYyLDE2LjEgMTQuMDkzLDE3LjY0MyBDMTMuNzg1LDE4LjkzNSAxNC43NDUsMTkuOTg4IDE2LjAyOCwxOS45ODggQzE4LjM1MSwxOS45ODggMjAuMTM2LDE3LjU1NiAyMC4xMzYsMTQuMDQ2IEMyMC4xMzYsMTAuOTM5IDE3Ljg4OCw4Ljc2NyAxNC42NzgsOC43NjcgQzEwLjk1OSw4Ljc2NyA4Ljc3NywxMS41MzYgOC43NzcsMTQuMzk4IEM4Ljc3NywxNS41MTMgOS4yMSwxNi43MDkgOS43NDksMTcuMzU5IEM5Ljg1NiwxNy40ODggOS44NzIsMTcuNiA5Ljg0LDE3LjczMSBDOS43NDEsMTguMTQxIDkuNTIsMTkuMDIzIDkuNDc3LDE5LjIwMyBDOS40MiwxOS40NCA5LjI4OCwxOS40OTEgOS4wNCwxOS4zNzYgQzcuNDA4LDE4LjYyMiA2LjM4NywxNi4yNTIgNi4zODcsMTQuMzQ5IEM2LjM4NywxMC4yNTYgOS4zODMsNi40OTcgMTUuMDIyLDYuNDk3IEMxOS41NTUsNi40OTcgMjMuMDc4LDkuNzA1IDIzLjA3OCwxMy45OTEgQzIzLjA3OCwxOC40NjMgMjAuMjM5LDIyLjA2MiAxNi4yOTcsMjIuMDYyIEMxNC45NzMsMjIuMDYyIDEzLjcyOCwyMS4zNzkgMTMuMzAyLDIwLjU3MiBDMTMuMzAyLDIwLjU3MiAxMi42NDcsMjMuMDUgMTIuNDg4LDIzLjY1NyBDMTIuMTkzLDI0Ljc4NCAxMS4zOTYsMjYuMTk2IDEwLjg2MywyNy4wNTggQzEyLjA4NiwyNy40MzQgMTMuMzg2LDI3LjYzNyAxNC43MzMsMjcuNjM3IEMyMS45NSwyNy42MzcgMjcuODAxLDIxLjgyOCAyNy44MDEsMTQuNjYyIEMyNy44MDEsNy40OTUgMjEuOTUsMS42ODYgMTQuNzMzLDEuNjg2IiBmaWxsPSIjYmQwODFjIj48L3BhdGg+PC9nPjwvc3ZnPg==&quot;) 3px 50% / 14px 14px no-repeat rgb(189, 8, 28) !important; position: absolute !important; opacity: 1 !important; display: none; cursor: pointer !important; border: none !important; -webkit-font-smoothing: antialiased !important;">Save</span></body></html>
